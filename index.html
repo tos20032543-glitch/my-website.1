@@ -1,0 +1,2057 @@
+<!DOCTYPE html>
+<html lang="th" class="h-full bg-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ระบบส่งงานและบริหารจัดการ แผนกซ่อมบำรุงไฟฟ้า</title>
+
+    <!-- PWA Primary Meta Tags -->
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ซ่อมไฟฟ้า">
+    
+    <!-- Web App Manifest embedded via Data URI -->
+    <link rel="manifest" href='data:application/manifest+json,{"name":"ระบบซ่อมบำรุงไฟฟ้า","short_name":"ซ่อมไฟฟ้า","start_url":".","display":"standalone","background_color":"#0f172a","theme_color":"#0f172a","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/2983/2983780.png","sizes":"512x512","type":"image/png"}]}'>
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2983/2983780.png">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts (Kanit) -->
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js for Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- PptxGenJS for PowerPoint Export -->
+    <script src="https://cdn.jsdelivr.net/gh/gitbrent/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Kanit', 'sans-serif'],
+                    },
+                    colors: {
+                        amber: {
+                            500: '#f59e0b',
+                            600: '#d97706',
+                            700: '#b45309',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Kanit', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom, 4rem); }
+    </style>
+</head>
+<body class="h-full text-slate-800 antialiased selection:bg-amber-500 selection:text-white">
+
+<div id="app" class="min-h-screen flex flex-col">
+
+    <!-- Auth View (Login / Register) -->
+    <div id="authContainer" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-amber-950 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transition-all duration-300">
+            <div class="bg-slate-900 p-6 text-white text-center border-b-4 border-amber-500">
+                <div class="w-16 h-16 bg-amber-500/10 border-2 border-amber-500 rounded-full flex items-center justify-center mx-auto mb-3 text-amber-500 text-2xl">
+                    <i class="fa-solid fa-bolt-lightning"></i>
+                </div>
+                <h1 class="text-2xl font-bold tracking-wide">แผนกซ่อมบำรุงไฟฟ้า</h1>
+                <p class="text-xs text-slate-400 mt-1">ระบบส่งงานและบริหารจัดการงานซ่อม</p>
+            </div>
+
+            <div id="loginTab" class="p-6 sm:p-8 space-y-5">
+                <div class="text-center mb-2">
+                    <h2 class="text-xl font-bold text-slate-800">เข้าสู่ระบบ</h2>
+                    <p class="text-xs text-slate-500">ลงชื่อเข้าใช้งานได้ทั้งคอมพิวเตอร์และมือถือ</p>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">รหัสพนักงาน</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><i class="fa-solid fa-id-card"></i></span>
+                        <input type="text" id="loginEmpId" class="w-full pl-10 pr-3 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition" placeholder="เช่น 210044 หรือ EMP-001">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">รหัสผ่าน</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><i class="fa-solid fa-lock"></i></span>
+                        <input type="password" id="loginPassword" class="w-full pl-10 pr-3 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition" placeholder="••••••••">
+                    </div>
+                </div>
+                <button onclick="handleLogin()" class="w-full bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-bold py-3.5 rounded-xl shadow-md transition duration-200 flex items-center justify-center gap-2 text-base">
+                    <i class="fa-solid fa-right-to-bracket"></i> เข้าสู่ระบบ
+                </button>
+
+                <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-center space-y-1">
+                    <p class="text-[11px] font-semibold text-slate-600"><i class="fa-solid fa-mobile-screen-button text-amber-500 mr-1"></i> เข้าใช้งานผ่านมือถือ/คอมเครื่องอื่น</p>
+                    <p class="text-[10px] text-slate-500">ใช้ IP แอดเดรสเครื่องโฮสต์ เช่น <span id="hostAddress" class="font-mono text-amber-700 bg-amber-50 px-1 py-0.5 rounded">http://...</span></p>
+                    <button onclick="copyHostUrl()" class="text-[10px] font-bold text-amber-600 hover:underline"><i class="fa-solid fa-copy mr-1"></i> คัดลอกลิงก์ใช้งาน</button>
+                </div>
+
+                <div class="text-center pt-2 border-t border-slate-100">
+                    <span class="text-xs text-slate-500">ยังไม่มีบัญชีใช้งาน?</span>
+                    <button onclick="switchAuthTab('register')" class="text-xs font-semibold text-amber-600 hover:text-amber-700 ml-1">ลงทะเบียนพนักงานใหม่</button>
+                </div>
+            </div>
+
+            <div id="registerTab" class="p-6 sm:p-8 space-y-4 hidden">
+                <div class="text-center mb-2">
+                    <h2 class="text-xl font-bold text-slate-800">ลงทะเบียนพนักงาน</h2>
+                    <p class="text-xs text-slate-500">สร้างบัญชีสำหรับช่างไฟฟ้าและผู้เกี่ยวข้อง</p>
+                </div>
+                
+                <div class="flex justify-center mb-2">
+                    <div class="relative group">
+                        <img id="registerAvatarPreview" src="https://placehold.co/100x100/e2e8f0/64748b?text=รูปถ่าย" class="w-20 h-20 rounded-full object-cover border-2 border-amber-500 shadow-sm">
+                        <label for="registerAvatar" class="absolute bottom-0 right-0 bg-slate-800 hover:bg-slate-700 text-white p-2 rounded-full cursor-pointer text-xs shadow-md transition">
+                            <i class="fa-solid fa-camera"></i>
+                        </label>
+                        <input type="file" id="registerAvatar" accept="image/*" class="hidden" onchange="previewRegisterAvatar(event)">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">ชื่อ-นามสกุล <span class="text-red-500">*</span></label>
+                    <input type="text" id="regFullName" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 outline-none" placeholder="นาย ช่างไฟฟ้า แสนขยัน">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">รหัสพนักงาน <span class="text-red-500">*</span></label>
+                        <input type="text" id="regEmpId" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 outline-none" placeholder="EMP-001">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">เบอร์โทรศัพท์ <span class="text-red-500">*</span></label>
+                        <input type="tel" id="regPhone" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 outline-none" placeholder="0812345678">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">รหัสผ่าน <span class="text-red-500">*</span></label>
+                    <input type="password" id="regPassword" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 outline-none" placeholder="กำหนดรหัสผ่าน">
+                </div>
+                <button onclick="handleRegister()" class="w-full bg-slate-900 active:scale-95 text-amber-400 font-bold py-3 rounded-xl shadow-md transition duration-200 mt-2">
+                    ยืนยันลงทะเบียน
+                </button>
+                <div class="text-center pt-2 border-t border-slate-100">
+                    <span class="text-xs text-slate-500">มีบัญชีแล้ว?</span>
+                    <button onclick="switchAuthTab('login')" class="text-xs font-semibold text-amber-600 hover:text-amber-700 ml-1">กลับไปหน้าเข้าสู่ระบบ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application Container -->
+    <div id="mainDashboard" class="min-h-screen flex flex-col md:flex-row bg-slate-100 hidden pb-safe">
+        
+        <div id="sidebarBackdrop" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-slate-900/60 z-30 hidden md:hidden backdrop-blur-sm transition-opacity"></div>
+
+        <aside id="sidebarNav" class="fixed md:static inset-y-0 left-0 z-40 w-64 bg-slate-900 text-slate-300 flex-shrink-0 border-r border-slate-800 flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
+            <div>
+                <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center text-slate-950 font-black text-xl shadow-lg">
+                            <i class="fa-solid fa-bolt"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-sm font-bold text-white tracking-wide">ซ่อมบำรุงไฟฟ้า</h1>
+                            <p class="text-[10px] text-amber-400 font-medium">MAINTENANCE SYSTEM</p>
+                        </div>
+                    </div>
+                    <button onclick="toggleMobileSidebar()" class="md:hidden text-slate-400 hover:text-white p-2">
+                        <i class="fa-solid fa-xmark text-xl"></i>
+                    </button>
+                </div>
+
+                <nav class="p-3 space-y-1">
+                    <button onclick="switchSection('home')" id="nav-home" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition duration-150 bg-amber-500 text-slate-950 shadow-md">
+                        <i class="fa-solid fa-house text-base"></i>
+                        <span>หน้าหลัก (Home)</span>
+                    </button>
+
+                    <button onclick="switchSection('submission')" id="nav-submission" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white transition duration-150">
+                        <i class="fa-solid fa-paper-plane text-base"></i>
+                        <span>ส่งงาน (Submit Work)</span>
+                    </button>
+
+                    <button onclick="switchSection('purchase')" id="nav-purchase" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white transition duration-150">
+                        <i class="fa-solid fa-cart-shopping text-base"></i>
+                        <span>เสนอสั่งซื้อ (PR)</span>
+                    </button>
+
+                    <button onclick="switchSection('dashboard')" id="nav-dashboard" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white transition duration-150">
+                        <i class="fa-solid fa-chart-pie text-base"></i>
+                        <span>ภาพรวมการทำงาน</span>
+                    </button>
+
+                    <button onclick="switchSection('adminReports')" id="nav-adminReports" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white transition duration-150 hidden">
+                        <i class="fa-solid fa-file-powerpoint text-base text-amber-400"></i>
+                        <span>ออกรายงาน PPTX (ผู้ดูแล)</span>
+                    </button>
+
+                    <button onclick="switchSection('adminUsers')" id="nav-adminUsers" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white transition duration-150 hidden">
+                        <i class="fa-solid fa-users-gear text-base text-amber-400"></i>
+                        <span>จัดการผู้ใช้งาน (ผู้ดูแล)</span>
+                    </button>
+
+                    <button onclick="switchSection('profile')" id="nav-profile" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white transition duration-150">
+                        <i class="fa-solid fa-id-card text-base"></i>
+                        <span>ข้อมูลส่วนตัว</span>
+                    </button>
+                </nav>
+            </div>
+
+            <div class="p-4 border-t border-slate-800 bg-slate-950/60">
+                <div class="flex items-center gap-3">
+                    <img id="sidebarUserAvatar" src="https://placehold.co/100x100/334155/f8fafc?text=User" class="w-10 h-10 rounded-full object-cover border border-amber-500/50">
+                    <div class="overflow-hidden flex-1">
+                        <p id="sidebarUserName" class="text-xs font-semibold text-white truncate">นาย ช่างไฟฟ้า</p>
+                        <p id="sidebarUserEmpId" class="text-[11px] text-slate-400 truncate">EMP-001</p>
+                    </div>
+                    <button onclick="handleLogout()" class="text-slate-400 hover:text-red-400 p-2 transition rounded-lg hover:bg-slate-800" title="ออกจากระบบ">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 flex flex-col min-w-0 overflow-y-auto custom-scrollbar">
+            <header class="bg-slate-900 md:bg-white text-white md:text-slate-800 border-b border-slate-800 md:border-slate-200 px-4 py-3 md:px-6 md:py-4 flex items-center justify-between sticky top-0 z-20 shadow-sm">
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleMobileSidebar()" class="md:hidden text-amber-500 hover:text-amber-400 text-xl p-1 focus:outline-none">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div>
+                        <h2 id="pageTitle" class="text-base md:text-xl font-bold truncate">หน้าหลัก - สรุปการทำงานและการสั่งซื้อ</h2>
+                        <p class="text-[11px] md:text-xs text-slate-400 md:text-slate-500 hidden sm:block">รวบรวมรายงานส่งงานในแต่ละวัน และรายการสั่งซื้อทั้งหมดของพนักงานทุกคน</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span id="roleBadge" class="hidden px-2 py-0.5 md:px-2.5 md:py-1 rounded-full text-[10px] md:text-xs font-bold bg-amber-500 text-slate-950 border border-amber-600">
+                        <i class="fa-solid fa-shield-halved mr-1"></i> ADMIN
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] md:text-xs font-medium bg-emerald-500/10 md:bg-amber-50 text-emerald-400 md:text-amber-700 border border-emerald-500/30 md:border-amber-200">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> ออนไลน์
+                    </span>
+                </div>
+            </header>
+
+            <div class="p-3 sm:p-6 space-y-4 sm:space-y-6 pb-24 md:pb-6">
+
+                <!-- SECTION 1: HOME -->
+                <section id="sec-home" class="space-y-4 sm:space-y-6">
+                    <div class="grid grid-cols-3 gap-2 sm:gap-4">
+                        <div class="bg-white p-3 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between text-center sm:text-left">
+                            <div>
+                                <p class="text-[10px] sm:text-xs font-medium text-slate-500">งานวันนี้</p>
+                                <h3 id="homeTodayJobsCount" class="text-base sm:text-2xl font-bold text-slate-800 mt-0.5">0 รายการ</h3>
+                            </div>
+                            <div class="w-8 h-8 sm:w-12 sm:h-12 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center text-sm sm:text-xl mt-1 sm:mt-0">
+                                <i class="fa-solid fa-calendar-day"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-3 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between text-center sm:text-left">
+                            <div>
+                                <p class="text-[10px] sm:text-xs font-medium text-slate-500">ช่างวันนี้</p>
+                                <h3 id="homeTodayTechsCount" class="text-base sm:text-2xl font-bold text-slate-800 mt-0.5">0 คน</h3>
+                            </div>
+                            <div class="w-8 h-8 sm:w-12 sm:h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center text-sm sm:text-xl mt-1 sm:mt-0">
+                                <i class="fa-solid fa-users-gear"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-3 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between text-center sm:text-left">
+                            <div>
+                                <p class="text-[10px] sm:text-xs font-medium text-slate-500">สั่งซื้อรวม</p>
+                                <h3 id="homeTotalPRCount" class="text-base sm:text-2xl font-bold text-slate-800 mt-0.5">0 รายการ</h3>
+                            </div>
+                            <div class="w-8 h-8 sm:w-12 sm:h-12 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center text-sm sm:text-xl mt-1 sm:mt-0">
+                                <i class="fa-solid fa-boxes-packing"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+                        <div class="lg:col-span-2 space-y-4">
+                            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-5 space-y-4">
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-3">
+                                    <div>
+                                        <h3 class="font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2">
+                                            <i class="fa-solid fa-list-check text-amber-500"></i> การส่งงานในแต่ละวัน
+                                        </h3>
+                                        <p class="text-[11px] text-slate-500">รวบรวมรายงานผลการซ่อมแยกตามรายวัน</p>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <input type="date" id="homeFilterDate" onchange="renderHomeDailyFeed()" class="px-2.5 py-1.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none focus:ring-2 focus:ring-amber-500">
+                                        <button onclick="resetHomeFeedFilter()" class="text-xs px-2.5 py-1.5 bg-slate-100 text-slate-600 active:bg-slate-200 rounded-xl transition">ลบตัวกรอง</button>
+                                    </div>
+                                </div>
+
+                                <div id="homeDailyFeedList" class="space-y-4"></div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-5 space-y-4">
+                                <div class="border-b pb-3">
+                                    <h3 class="font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2">
+                                        <i class="fa-solid fa-cart-flatbed text-amber-500"></i> สรุปการสั่งของทั้งหมด (PR)
+                                    </h3>
+                                    <p class="text-[11px] text-slate-500">รายการเสนอซื้ออุปกรณ์ไฟฟ้าจากทุกผู้ใช้งาน</p>
+                                </div>
+
+                                <div id="homePRFeedList" class="space-y-3 max-h-[600px] overflow-y-auto custom-scrollbar pr-1"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECTION 2: WORK SUBMISSION -->
+                <section id="sec-submission" class="space-y-6 hidden">
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div class="bg-slate-900 text-white px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-800 flex justify-between items-center">
+                            <div class="flex items-center gap-3">
+                                <span class="bg-amber-500 text-slate-950 p-2 rounded-xl text-sm font-bold"><i class="fa-solid fa-file-circle-plus"></i></span>
+                                <div>
+                                    <h3 class="font-bold text-sm sm:text-base">แบบฟอร์มบันทึกส่งงาน</h3>
+                                    <p class="text-[11px] text-slate-400">ระบุวันที่ ฤดูกาล แผนก และรายการงาน</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <form id="workSubmissionForm" onsubmit="handleWorkSubmit(event)" class="p-4 sm:p-6 space-y-5">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-50 p-3 sm:p-4 rounded-2xl border border-slate-200">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">1. วันที่ปฏิบัติงาน <span class="text-red-500">*</span></label>
+                                    <input type="date" id="subDate" required class="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">2. ฤดูกาล <span class="text-red-500">*</span></label>
+                                    <select id="subSeason" required class="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 outline-none font-medium">
+                                        <option value="">-- เลือกฤดูกาล --</option>
+                                        <option value="ฤดูหีบ">ฤดูหีบ</option>
+                                        <option value="ฤดูละลาย">ฤดูละลาย</option>
+                                        <option value="ฤดูซ่อม">ฤดูซ่อม</option>
+                                        <option value="ปัญหาหน้าหีบ">ปัญหาหน้าหีบ</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">3. แผนกที่เข้าปฏิบัติงาน <span class="text-red-500">*</span></label>
+                                    <select id="subDepartment" required onchange="toggleOtherDeptInput()" class="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 outline-none font-medium">
+                                        <option value="">-- เลือกแผนก --</option>
+                                        <option value="แผนกลูกหีบ">แผนกลูกหีบ</option>
+                                        <option value="แผนกหม้อต้ม">แผนกหม้อต้ม</option>
+                                        <option value="แผนกหม้อเคี่ยว">แผนกหม้อเคี่ยว</option>
+                                        <option value="แผนกหม้อปั่น">แผนกหม้อปั่น</option>
+                                        <option value="แผนกคลังสินค้า">แผนกคลังสินค้า</option>
+                                        <option value="แผนกรีไฟน์">แผนกรีไฟน์</option>
+                                        <option value="แผนกซ่อมบำรุง">แผนกซ่อมบำรุง</option>
+                                        <option value="แผนก Boiler">แผนก Boiler</option>
+                                        <option value="แผนก TG">แผนก TG</option>
+                                        <option value="แผนกฝ่ายไร่">แผนกฝ่ายไร่</option>
+                                        <option value="ศูนย์วิศวะ">ศูนย์วิศวะ</option>
+                                        <option value="นอกสถานที่">นอกสถานที่</option>
+                                        <option value="อื่นๆ">อื่นๆ (ระบุ)</option>
+                                    </select>
+                                    <input type="text" id="subDepartmentOther" class="w-full mt-2 px-3 py-2.5 bg-white border border-amber-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 outline-none hidden" placeholder="ระบุชื่อแผนกเพิ่มเติม...">
+                                </div>
+                            </div>
+
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between border-b pb-2">
+                                    <h4 class="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-2">
+                                        <i class="fa-solid fa-list-check text-amber-600"></i> รายการงานในแผนกนี้
+                                    </h4>
+                                    <button type="button" onclick="addWorkTaskRow()" class="text-xs bg-amber-100 text-amber-800 active:bg-amber-200 px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1 border border-amber-300">
+                                        <i class="fa-solid fa-plus"></i> เพิ่มรายการ
+                                    </button>
+                                </div>
+
+                                <div id="tasksContainer" class="space-y-4"></div>
+                            </div>
+
+                            <div class="pt-4 border-t flex flex-col sm:flex-row items-center justify-between gap-3">
+                                <button type="button" onclick="addWorkTaskRow()" class="w-full sm:w-auto text-sm bg-slate-100 active:bg-slate-200 text-slate-700 px-4 py-3 rounded-xl font-semibold transition border border-slate-300">
+                                    <i class="fa-solid fa-plus mr-1"></i> เพิ่มอีก 1 รายการ
+                                </button>
+                                <button type="submit" class="w-full sm:w-auto bg-amber-500 active:bg-amber-600 text-slate-950 font-bold px-8 py-3.5 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 text-base">
+                                    <i class="fa-solid fa-paper-plane"></i> บันทึกส่งงานทั้งหมด
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-3">
+                            <div>
+                                <h3 class="font-bold text-slate-800 text-base sm:text-lg flex items-center gap-2">
+                                    <i class="fa-solid fa-clock-rotate-left text-amber-500"></i> ประวัติการส่งงานทั้งหมด
+                                </h3>
+                                <p class="text-[11px] text-slate-500">รายการส่งงานย้อนหลังภาพรวม</p>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <select id="filterSeason" onchange="renderWorkLogs()" class="w-1/2 sm:w-auto px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium outline-none">
+                                    <option value="ALL">-- ทุกฤดูกาล --</option>
+                                    <option value="ฤดูหีบ">ฤดูหีบ</option>
+                                    <option value="ฤดูละลาย">ฤดูละลาย</option>
+                                    <option value="ฤดูซ่อม">ฤดูซ่อม</option>
+                                    <option value="ปัญหาหน้าหีบ">ปัญหาหน้าหีบ</option>
+                                </select>
+                                <select id="filterDept" onchange="renderWorkLogs()" class="w-1/2 sm:w-auto px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium outline-none">
+                                    <option value="ALL">-- ทุกแผนก --</option>
+                                    <option value="แผนกลูกหีบ">แผนกลูกหีบ</option>
+                                    <option value="แผนกหม้อต้ม">แผนกหม้อต้ม</option>
+                                    <option value="แผนกหม้อเคี่ยว">แผนกหม้อเคี่ยว</option>
+                                    <option value="แผนกหม้อปั่น">แผนกหม้อปั่น</option>
+                                    <option value="แผนกคลังสินค้า">แผนกคลังสินค้า</option>
+                                    <option value="แผนกรีไฟน์">แผนกรีไฟน์</option>
+                                    <option value="แผนกซ่อมบำรุง">แผนกซ่อมบำรุง</option>
+                                    <option value="แผนก Boiler">แผนก Boiler</option>
+                                    <option value="แผนก TG">แผนก TG</option>
+                                    <option value="แผนกฝ่ายไร่">แผนกฝ่ายไร่</option>
+                                    <option value="ศูนย์วิศวะ">ศูนย์วิศวะ</option>
+                                    <option value="นอกสถานที่">นอกสถานที่</option>
+                                    <option value="อื่นๆ">อื่นๆ</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="workLogList" class="space-y-4"></div>
+                    </div>
+                </section>
+
+                <!-- SECTION 3: PURCHASE REQUEST -->
+                <section id="sec-purchase" class="space-y-6 hidden">
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div class="bg-slate-900 text-white px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-800 flex justify-between items-center">
+                            <div class="flex items-center gap-3">
+                                <span class="bg-amber-500 text-slate-950 p-2 rounded-xl text-sm font-bold"><i class="fa-solid fa-cart-flatbed"></i></span>
+                                <div>
+                                    <h3 class="font-bold text-sm sm:text-base">แบบฟอร์มเสนอสั่งซื้ออุปกรณ์ (PR)</h3>
+                                    <p class="text-[11px] text-slate-400">ระบุแผนก รายการสินค้า และรูปภาพ</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <form id="prSubmissionForm" onsubmit="handlePRSubmit(event)" class="p-4 sm:p-6 space-y-5">
+                            <div class="bg-slate-50 p-3 sm:p-4 rounded-2xl border border-slate-200">
+                                <label class="block text-xs font-bold text-slate-700 mb-1">1. แผนกที่สั่งซื้อให้ <span class="text-red-500">*</span></label>
+                                <select id="prDepartment" required onchange="togglePROtherDeptInput()" class="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 outline-none font-medium">
+                                    <option value="">-- เลือกแผนก --</option>
+                                    <option value="แผนกลูกหีบ">แผนกลูกหีบ</option>
+                                    <option value="แผนกหม้อต้ม">แผนกหม้อต้ม</option>
+                                    <option value="แผนกหม้อเคี่ยว">แผนกหม้อเคี่ยว</option>
+                                    <option value="แผนกหม้อปั่น">แผนกหม้อปั่น</option>
+                                    <option value="แผนกคลังสินค้า">แผนกคลังสินค้า</option>
+                                    <option value="แผนกรีไฟน์">แผนกรีไฟน์</option>
+                                    <option value="แผนกซ่อมบำรุง">แผนกซ่อมบำรุง</option>
+                                    <option value="แผนก Boiler">แผนก Boiler</option>
+                                    <option value="แผนก TG">แผนก TG</option>
+                                    <option value="แผนกฝ่ายไร่">แผนกฝ่ายไร่</option>
+                                    <option value="ศูนย์วิศวะ">ศูนย์วิศวะ</option>
+                                    <option value="นอกสถานที่">นอกสถานที่</option>
+                                    <option value="อื่นๆ">อื่นๆ (ระบุ)</option>
+                                </select>
+                                <input type="text" id="prDepartmentOther" class="w-full mt-2 px-3 py-2.5 bg-white border border-amber-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 outline-none hidden" placeholder="ระบุชื่อแผนกเพิ่มเติม...">
+                            </div>
+
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between border-b pb-2">
+                                    <h4 class="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-2">
+                                        <i class="fa-solid fa-boxes-packing text-amber-600"></i> รายการสั่งซื้อในแผนกนี้
+                                    </h4>
+                                    <button type="button" onclick="addPRItemRow()" class="text-xs bg-amber-100 text-amber-800 active:bg-amber-200 px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1 border border-amber-300">
+                                        <i class="fa-solid fa-plus"></i> เพิ่มรายการ
+                                    </button>
+                                </div>
+
+                                <div id="prItemsContainer" class="space-y-4"></div>
+                            </div>
+
+                            <div class="pt-4 border-t flex flex-col sm:flex-row items-center justify-between gap-3">
+                                <button type="button" onclick="addPRItemRow()" class="w-full sm:w-auto text-sm bg-slate-100 active:bg-slate-200 text-slate-700 px-4 py-3 rounded-xl font-semibold transition border border-slate-300">
+                                    <i class="fa-solid fa-plus mr-1"></i> เพิ่มอีก 1 รายการ
+                                </button>
+                                <button type="submit" class="w-full sm:w-auto bg-amber-500 active:bg-amber-600 text-slate-950 font-bold px-8 py-3.5 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 text-base">
+                                    <i class="fa-solid fa-paper-plane"></i> ยื่นรายการสั่งซื้อทั้งหมด
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 space-y-4">
+                        <div class="border-b pb-3">
+                            <h3 class="font-bold text-slate-800 text-base sm:text-lg flex items-center gap-2">
+                                <i class="fa-solid fa-clock-rotate-left text-amber-500"></i> ประวัติรายการเสนอสั่งซื้อ (PR)
+                            </h3>
+                            <p class="text-[11px] text-slate-500">รายการเสนอสั่งซื้ออุปกรณ์ไฟฟ้าทั้งหมด</p>
+                        </div>
+
+                        <div id="prLogList" class="space-y-4"></div>
+                    </div>
+                </section>
+
+                <!-- SECTION 4: DASHBOARD ANALYTICS -->
+                <section id="sec-dashboard" class="space-y-6 hidden">
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-filter text-amber-500 text-lg"></i>
+                            <h3 class="font-bold text-slate-800 text-sm">ตัวกรองข้อมูลภาพรวม</h3>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <label class="text-xs font-bold text-slate-600">ฤดูกาล:</label>
+                            <select id="dashSeasonFilter" onchange="updateDashboardCharts()" class="w-full sm:w-auto px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-amber-500">
+                                <option value="ALL">-- แสดงทุกฤดูกาล --</option>
+                                <option value="ฤดูหีบ">ฤดูหีบ</option>
+                                <option value="ฤดูละลาย">ฤดูละลาย</option>
+                                <option value="ฤดูซ่อม">ฤดูซ่อม</option>
+                                <option value="ปัญหาหน้าหีบ">ปัญหาหน้าหีบ</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                        <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-xl flex-shrink-0">
+                                <i class="fa-solid fa-wrench"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs text-slate-500">งานซ่อมบำรุงรวม</p>
+                                <p id="dashTotalJobs" class="text-xl sm:text-2xl font-bold text-slate-800">0</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center text-xl flex-shrink-0">
+                                <i class="fa-solid fa-building"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs text-slate-500">แผนกที่มีงานมากที่สุด</p>
+                                <p id="dashTopDept" class="text-sm sm:text-base font-bold text-slate-800 truncate">-</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl flex-shrink-0">
+                                <i class="fa-solid fa-cart-shopping"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs text-slate-500">รายการสั่งซื้อ (PR) รวม</p>
+                                <p id="dashTotalPR" class="text-xl sm:text-2xl font-bold text-slate-800">0</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                        <div class="border-b pb-3">
+                            <h4 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                                <i class="fa-solid fa-user-check text-amber-500"></i> รายชื่อพนักงาน และการจำแนกประเภทงานที่ส่ง
+                            </h4>
+                        </div>
+                        <div id="dashUserStatsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+                        <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm">
+                            <h4 class="text-sm font-bold text-slate-800 mb-4">สัดส่วนงานแยกตามแผนก</h4>
+                            <div class="h-64 flex justify-center">
+                                <canvas id="chartDept"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm">
+                            <h4 class="text-sm font-bold text-slate-800 mb-4">สัดส่วนประเภทงานภาพรวม</h4>
+                            <div class="h-64 flex justify-center">
+                                <canvas id="chartType"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm">
+                            <h4 class="text-sm font-bold text-slate-800 mb-4">เปรียบเทียบจำนวนงานตามพนักงาน</h4>
+                            <div class="h-64 flex justify-center">
+                                <canvas id="chartUserJobs"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECTION: ADMIN PPTX EXPORT -->
+                <section id="sec-adminReports" class="space-y-6 hidden">
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 space-y-5">
+                        <div class="border-b pb-4 flex items-center gap-3">
+                            <div class="w-10 h-10 sm:w-12 sm:h-12 bg-amber-500 text-slate-950 rounded-xl flex items-center justify-center text-xl sm:text-2xl font-black flex-shrink-0">
+                                <i class="fa-solid fa-file-powerpoint"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-base sm:text-lg font-bold text-slate-800">ส่งออกรายงานนำเสนอ (PowerPoint Report)</h3>
+                                <p class="text-[11px] text-slate-500">ดึงข้อมูลส่งออกเป็นสไลด์ PowerPoint [ผู้ดูแลระบบ]</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">เริ่มต้นวันที่</label>
+                                <input type="date" id="pptxStartDate" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-sm outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">ถึงวันที่</label>
+                                <input type="date" id="pptxEndDate" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-sm outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">ฤดูกาล</label>
+                                <select id="pptxSeason" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-sm outline-none font-medium">
+                                    <option value="ALL">-- ทุกฤดูกาล --</option>
+                                    <option value="ฤดูหีบ">ฤดูหีบ</option>
+                                    <option value="ฤดูละลาย">ฤดูละลาย</option>
+                                    <option value="ฤดูซ่อม">ฤดูซ่อม</option>
+                                    <option value="ปัญหาหน้าหีบ">ปัญหาหน้าหีบ</option>
+                                </select>
+                            </div>
+                            <div class="flex items-end">
+                                <button onclick="generatePowerPointReport()" class="w-full bg-amber-500 active:bg-amber-600 text-slate-950 font-bold py-2.5 rounded-xl shadow transition flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-file-export"></i> สร้างไฟล์ PPTX
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECTION: ADMIN USER MANAGEMENT -->
+                <section id="sec-adminUsers" class="space-y-6 hidden">
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 space-y-5">
+                        <div class="border-b pb-4 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 sm:w-12 sm:h-12 bg-amber-500 text-slate-950 rounded-xl flex items-center justify-center text-xl sm:text-2xl font-black flex-shrink-0">
+                                    <i class="fa-solid fa-users-gear"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-base sm:text-lg font-bold text-slate-800">บริหารจัดการผู้ใช้งานและสิทธิ์ระบบ</h3>
+                                    <p class="text-[11px] text-slate-500">จัดการผู้ใช้งาน ปรับสิทธิ์ หรือแก้ไขข้อมูล</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto -mx-4 sm:mx-0">
+                            <div class="inline-block min-w-full align-middle p-2">
+                                <table class="min-w-full text-left text-xs text-slate-600 border-collapse">
+                                    <thead class="bg-slate-100 text-slate-700 uppercase font-bold border-b border-slate-200">
+                                        <tr>
+                                            <th class="p-3">พนักงาน</th>
+                                            <th class="p-3">รหัสพนักงาน</th>
+                                            <th class="p-3">เบอร์โทร</th>
+                                            <th class="p-3">สิทธิ์</th>
+                                            <th class="p-3 text-center">จัดการ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="adminUserTableBody" class="divide-y divide-slate-200"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECTION 5: USER PROFILE -->
+                <section id="sec-profile" class="space-y-6 hidden">
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6 max-w-xl mx-auto space-y-5">
+                        <div class="text-center pb-4 border-b">
+                            <div class="relative inline-block">
+                                <img id="profAvatar" src="https://placehold.co/120x120/334155/f8fafc?text=User" class="w-24 h-24 rounded-full mx-auto object-cover border-4 border-amber-500 shadow-md">
+                                <label for="editAvatarInput" class="absolute bottom-0 right-0 bg-slate-800 hover:bg-slate-700 text-white p-2 rounded-full cursor-pointer text-xs shadow-md transition">
+                                    <i class="fa-solid fa-pen"></i>
+                                </label>
+                                <input type="file" id="editAvatarInput" accept="image/*" class="hidden" onchange="handleProfileAvatarUpload(event)">
+                            </div>
+                            <h3 id="profName" class="text-lg font-bold text-slate-800 mt-3">ชื่อ-นามสกุล</h3>
+                            <span id="profRoleTag" class="inline-block mt-1 px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-bold">แผนกซ่อมบำรุงไฟฟ้า</span>
+                        </div>
+
+                        <form onsubmit="handleSaveProfile(event)" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">ชื่อ - นามสกุล</label>
+                                <input type="text" id="editFullName" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">รหัสพนักงาน</label>
+                                    <input type="text" id="editEmpId" readonly class="w-full px-3 py-2.5 bg-slate-200 text-slate-600 border border-slate-300 rounded-xl text-sm cursor-not-allowed">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">เบอร์โทรศัพท์</label>
+                                    <input type="tel" id="editPhone" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">รหัสผ่านใหม่ (เว้นว่างไว้หากไม่เปลี่ยน)</label>
+                                <input type="password" id="editPassword" placeholder="••••••••" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+                            </div>
+
+                            <button type="submit" class="w-full bg-amber-500 active:bg-amber-600 text-slate-950 font-bold py-3 rounded-xl shadow transition">
+                                <i class="fa-solid fa-floppy-disk mr-1"></i> บันทึกข้อมูล
+                            </button>
+                        </form>
+
+                        <div class="pt-2 border-t">
+                            <button onclick="handleLogout()" class="w-full bg-red-500 active:bg-red-600 text-white font-bold py-3 rounded-xl shadow transition">
+                                <i class="fa-solid fa-right-from-bracket mr-2"></i> ออกจากระบบ
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+        
+        <!-- Mobile Bottom App Bar Navigation -->
+        <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 z-30 flex justify-around items-center px-2 py-1.5 shadow-2xl">
+            <button onclick="switchSection('home')" id="m-nav-home" class="flex flex-col items-center py-1 px-3 text-amber-500">
+                <i class="fa-solid fa-house text-lg"></i>
+                <span class="text-[10px] font-semibold mt-0.5">หน้าหลัก</span>
+            </button>
+            <button onclick="switchSection('submission')" id="m-nav-submission" class="flex flex-col items-center py-1 px-3 text-slate-400">
+                <i class="fa-solid fa-paper-plane text-lg"></i>
+                <span class="text-[10px] font-semibold mt-0.5">ส่งงาน</span>
+            </button>
+            <button onclick="switchSection('purchase')" id="m-nav-purchase" class="flex flex-col items-center py-1 px-3 text-slate-400">
+                <i class="fa-solid fa-cart-shopping text-lg"></i>
+                <span class="text-[10px] font-semibold mt-0.5">เสนอสั่งซื้อ</span>
+            </button>
+            <button onclick="switchSection('dashboard')" id="m-nav-dashboard" class="flex flex-col items-center py-1 px-3 text-slate-400">
+                <i class="fa-solid fa-chart-pie text-lg"></i>
+                <span class="text-[10px] font-semibold mt-0.5">แดชบอร์ด</span>
+            </button>
+            <button onclick="switchSection('profile')" id="m-nav-profile" class="flex flex-col items-center py-1 px-3 text-slate-400">
+                <i class="fa-solid fa-user text-lg"></i>
+                <span class="text-[10px] font-semibold mt-0.5">ส่วนตัว</span>
+            </button>
+        </nav>
+    </div>
+
+</div>
+
+<!-- Modals & Toasts Structure -->
+<div id="adminEditUserModal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
+        <div class="bg-slate-900 text-white px-5 py-4 flex items-center justify-between border-b border-amber-500">
+            <h3 class="font-bold text-base flex items-center gap-2">
+                <i class="fa-solid fa-user-pen text-amber-500"></i> แก้ไขข้อมูลผู้ใช้งาน (Admin)
+            </h3>
+            <button onclick="closeAdminEditModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+        <form onsubmit="handleAdminSaveUser(event)" class="p-5 space-y-4">
+            <input type="hidden" id="adminEditEmpIdHidden">
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">รหัสพนักงาน</label>
+                <input type="text" id="adminEditEmpId" readonly class="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-xl text-sm font-mono cursor-not-allowed">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">ชื่อ - นามสกุล <span class="text-red-500">*</span></label>
+                <input type="text" id="adminEditFullName" required class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">สิทธิ์ใช้งานระบบ <span class="text-red-500">*</span></label>
+                <select id="adminEditRole" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 outline-none font-bold">
+                    <option value="USER">USER (ผู้ใช้งานทั่วไป)</option>
+                    <option value="ADMIN">ADMIN (ผู้ดูแลระบบ)</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">เบอร์โทรศัพท์ <span class="text-red-500">*</span></label>
+                <input type="tel" id="adminEditPhone" required class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">รหัสผ่านใหม่ (เว้นว่างหากไม่เปลี่ยน)</label>
+                <input type="password" id="adminEditPassword" placeholder="ป้อนรหัสผ่านใหม่..." class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+            </div>
+            <div class="pt-2 flex gap-2 justify-end">
+                <button type="button" onclick="closeAdminEditModal()" class="px-4 py-2 bg-slate-200 text-slate-700 text-xs font-bold rounded-xl">ยกเลิก</button>
+                <button type="submit" class="px-5 py-2 bg-amber-500 text-slate-950 text-xs font-bold rounded-xl shadow">บันทึกข้อมูล</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="imageModal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden" onclick="closeImageModal()">
+    <div class="relative max-w-3xl w-full flex justify-center">
+        <img id="modalImg" src="" class="max-h-[85vh] rounded-lg shadow-2xl object-contain">
+        <button class="absolute -top-10 right-0 text-white text-2xl"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+</div>
+
+<div id="toast" class="fixed bottom-16 md:bottom-5 left-1/2 -translate-x-1/2 md:left-auto md:right-5 md:translate-x-0 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center gap-3 w-[90%] max-w-sm md:w-auto">
+    <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+    <span id="toastMsg" class="text-xs sm:text-sm font-medium">การทำงานสำเร็จ</span>
+</div>
+
+<script>
+let deptChartInstance = null;
+let typeChartInstance = null;
+let userJobsChartInstance = null;
+
+function toggleMobileSidebar() {
+    const sidebar = document.getElementById('sidebarNav');
+    const backdrop = document.getElementById('sidebarBackdrop');
+    
+    if (sidebar.classList.contains('-translate-x-full')) {
+        sidebar.classList.remove('-translate-x-full');
+        backdrop.classList.remove('hidden');
+    } else {
+        sidebar.classList.add('-translate-x-full');
+        backdrop.classList.add('hidden');
+    }
+}
+
+function switchSection(secId) {
+    const sections = ['home', 'submission', 'purchase', 'dashboard', 'adminReports', 'adminUsers', 'profile'];
+    
+    sections.forEach(s => {
+        const secEl = document.getElementById(`sec-${s}`);
+        const navBtn = document.getElementById(`nav-${s}`);
+        const mNavBtn = document.getElementById(`m-nav-${s}`);
+        
+        if (secEl) {
+            if (s === secId) {
+                secEl.classList.remove('hidden');
+            } else {
+                secEl.classList.add('hidden');
+            }
+        }
+        
+        if (navBtn) {
+            if (s === secId) {
+                navBtn.className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition duration-150 bg-amber-500 text-slate-950 shadow-md";
+            } else {
+                navBtn.className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white transition duration-150";
+            }
+        }
+
+        if (mNavBtn) {
+            if (s === secId) {
+                mNavBtn.className = "flex flex-col items-center py-1 px-3 text-amber-500 font-bold scale-105 transition";
+            } else {
+                mNavBtn.className = "flex flex-col items-center py-1 px-3 text-slate-400 font-normal transition";
+            }
+        }
+    });
+
+    const sidebar = document.getElementById('sidebarNav');
+    const backdrop = document.getElementById('sidebarBackdrop');
+    if (sidebar && !sidebar.classList.contains('-translate-x-full')) {
+        sidebar.classList.add('-translate-x-full');
+        backdrop.classList.add('hidden');
+    }
+
+    if (secId === 'dashboard' && typeof updateDashboardCharts === 'function') {
+        setTimeout(updateDashboardCharts, 100);
+    }
+}
+
+function showToast(msg, type = 'success') {
+    const toast = document.getElementById('toast');
+    const toastMsg = document.getElementById('toastMsg');
+    const toastIcon = document.getElementById('toastIcon');
+
+    if (!toast || !toastMsg || !toastIcon) return;
+
+    toastMsg.innerText = msg;
+    if (type === 'error') {
+        toastIcon.className = "fa-solid fa-circle-exclamation text-red-400 text-lg";
+    } else {
+        toastIcon.className = "fa-solid fa-circle-check text-emerald-400 text-lg";
+    }
+
+    toast.classList.remove('translate-y-20', 'opacity-0');
+    toast.classList.add('translate-y-0', 'opacity-100');
+
+    setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-20', 'opacity-0');
+    }, 3000);
+}
+
+function openImageModal(imgUrl) {
+    document.getElementById('modalImg').src = imgUrl;
+    document.getElementById('imageModal').classList.remove('hidden');
+}
+
+function closeImageModal() {
+    document.getElementById('imageModal').classList.add('hidden');
+}
+
+function compressImage(base64Str, maxWidth = 800, quality = 0.6) {
+    return new Promise((resolve) => {
+        if (!base64Str || !base64Str.startsWith('data:image')) {
+            resolve(base64Str);
+            return;
+        }
+        const img = new Image();
+        img.src = base64Str;
+        img.onload = () => {
+            let width = img.width;
+            let height = img.height;
+            if (width > maxWidth) {
+                height = Math.round((height * maxWidth) / width);
+                width = maxWidth;
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = () => resolve(base64Str);
+    });
+}
+
+function applyDataRetentionPolicy() {
+    const fiveYearsAgo = new Date();
+    fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
+
+    let workChanged = false;
+    workLogs = workLogs.filter(log => {
+        if (log.season === 'ปัญหาหน้าหีบ') {
+            return true;
+        }
+        const logDate = new Date(log.date || log.createdAt);
+        if (logDate < fiveYearsAgo) {
+            workChanged = true;
+            return false;
+        }
+        return true;
+    });
+
+    if (workChanged) {
+        saveWorkLogsToStorage();
+    }
+
+    let prChanged = false;
+    prRequests = prRequests.filter(pr => {
+        const prDate = new Date(pr.date || pr.createdAt);
+        if (prDate < fiveYearsAgo) {
+            prChanged = true;
+            return false;
+        }
+        return true;
+    });
+
+    if (prChanged) {
+        savePRRequestsToStorage();
+    }
+}
+
+function saveWorkLogsToStorage() {
+    try {
+        localStorage.setItem('elec_work_logs', JSON.stringify(workLogs));
+    } catch (e) {
+        console.error('Storage quota exceeded:', e);
+        showToast('หน่วยความจำเต็ม กรุณาขอลบรูปภาพเก่าออกบางส่วน', 'error');
+    }
+}
+
+function savePRRequestsToStorage() {
+    try {
+        localStorage.setItem('elec_pr_requests', JSON.stringify(prRequests));
+    } catch (e) {
+        console.error('Storage quota exceeded:', e);
+    }
+}
+
+function copyHostUrl() {
+    const url = window.location.href;
+    navigator.clipboard.writeText(url).then(() => {
+        showToast('คัดลอก URL เรียบร้อยแล้ว');
+    }).catch(() => {
+        showToast('ไม่สามารถคัดลอก URL ได้', 'error');
+    });
+}
+
+/* ==================== DELETE FUNCTIONS ==================== */
+function deleteWorkLog(workId) {
+    if (confirm('คุณแน่ใจหรือไม่ว่าต้องการลบรายการส่งงานนี้?')) {
+        workLogs = workLogs.filter(w => w.id !== workId);
+        saveWorkLogsToStorage();
+        showToast('ลบรายการส่งงานเรียบร้อยแล้ว');
+        renderHomeDailyFeed();
+        renderWorkLogs();
+    }
+}
+
+function deletePRRequest(prId) {
+    if (confirm('คุณแน่ใจหรือไม่ว่าต้องการลบรายการสั่งซื้อนี้?')) {
+        prRequests = prRequests.filter(p => p.id !== prId);
+        savePRRequestsToStorage();
+        showToast('ลบรายการเสนอสั่งซื้อเรียบร้อยแล้ว');
+        renderHomePRFeed();
+        renderPRList();
+    }
+}
+
+/* ==================== APP STATE & DATA STORAGE ==================== */
+let currentUser = null;
+
+const defaultUsers = [
+    {
+        empId: '210044',
+        password: '123',
+        fullName: 'นายศิวินัท บุญแต่ง',
+        phone: '0857152013',
+        role: 'ADMIN',
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
+    },
+    {
+        empId: '210117',
+        password: '123',
+        fullName: 'นายณัฐพล จันทร์เขียว',
+        phone: '0839613803',
+        role: 'ADMIN',
+        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80'
+    },
+    {
+        empId: 'EMP-001',
+        password: '123',
+        fullName: 'นาย สมชาย ไฟฟ้า',
+        phone: '0812345678',
+        role: 'USER',
+        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80'
+    }
+];
+
+let registeredUsers = JSON.parse(localStorage.getItem('elec_users')) || defaultUsers;
+
+defaultUsers.forEach(defU => {
+    if (!registeredUsers.some(u => u.empId === defU.empId)) {
+        registeredUsers.push(defU);
+    }
+});
+localStorage.setItem('elec_users', JSON.stringify(registeredUsers));
+
+let workLogs = JSON.parse(localStorage.getItem('elec_work_logs')) || [
+    {
+        id: 'WORK-101',
+        date: new Date().toISOString().split('T')[0],
+        season: 'ฤดูหีบ',
+        department: 'แผนกหม้อต้ม',
+        tasks: [
+            { type: 'งานซ่อมแซม/แก้ไข (Repair)', details: 'เปลี่ยนฟิวส์ตู้ควบคุม และเช็คระบบมอเตอร์ปั๊มน้ำ', photo: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=300&auto=format&fit=crop&q=80' }
+        ],
+        submittedBy: {
+            name: 'นาย สมชาย ไฟฟ้า',
+            empId: 'EMP-001',
+            avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80'
+        },
+        createdAt: new Date().toISOString()
+    }
+];
+
+let prRequests = JSON.parse(localStorage.getItem('elec_pr_requests')) || [
+    {
+        id: 'PR-101',
+        date: new Date().toISOString().split('T')[0],
+        department: 'แผนก Boiler',
+        items: [
+            { itemName: 'เบรกเกอร์ 3P 100A Schneider', purpose: 'สำหรับเปลี่ยนตู้ MDB หม้อ Boiler #2', photo: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=300&auto=format&fit=crop&q=80' }
+        ],
+        requestedBy: {
+            name: 'นาย สมชาย ไฟฟ้า',
+            empId: 'EMP-001',
+            avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80'
+        },
+        status: 'รออนุมัติ',
+        createdAt: new Date().toISOString()
+    }
+];
+
+let taskItemCounter = 0;
+let prItemCounter = 0;
+
+window.onload = function() {
+    applyDataRetentionPolicy();
+
+    const hostEl = document.getElementById('hostAddress');
+    if (hostEl) {
+        hostEl.innerText = window.location.origin;
+    }
+
+    const savedUser = localStorage.getItem('elec_current_user');
+    if (savedUser) {
+        currentUser = JSON.parse(savedUser);
+        const latestInfo = registeredUsers.find(u => u.empId === currentUser.empId);
+        if (latestInfo) {
+            currentUser = latestInfo;
+            localStorage.setItem('elec_current_user', JSON.stringify(currentUser));
+        }
+        showMainApp();
+    } else {
+        document.getElementById('authContainer').classList.remove('hidden');
+        document.getElementById('mainDashboard').classList.add('hidden');
+    }
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    const subDateEl = document.getElementById('subDate');
+    if (subDateEl) subDateEl.value = todayStr;
+
+    const pptxStart = document.getElementById('pptxStartDate');
+    const pptxEnd = document.getElementById('pptxEndDate');
+    if (pptxStart) pptxStart.value = todayStr;
+    if (pptxEnd) pptxEnd.value = todayStr;
+
+    resetWorkTasksForm();
+    resetPRForm();
+};
+
+function switchAuthTab(tab) {
+    if (tab === 'register') {
+        document.getElementById('loginTab').classList.add('hidden');
+        document.getElementById('registerTab').classList.remove('hidden');
+    } else {
+        document.getElementById('registerTab').classList.add('hidden');
+        document.getElementById('loginTab').classList.remove('hidden');
+    }
+}
+
+let tempRegisterAvatar = 'https://placehold.co/100x100/e2e8f0/64748b?text=รูปถ่าย';
+
+async function previewRegisterAvatar(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            tempRegisterAvatar = await compressImage(e.target.result, 300, 0.6);
+            document.getElementById('registerAvatarPreview').src = tempRegisterAvatar;
+        }
+        reader.readAsDataURL(file);
+    }
+}
+
+function handleRegister() {
+    const fullName = document.getElementById('regFullName').value.trim();
+    const empId = document.getElementById('regEmpId').value.trim();
+    const phone = document.getElementById('regPhone').value.trim();
+    const password = document.getElementById('regPassword').value.trim();
+
+    if (!fullName || !empId || !phone || !password) {
+        showToast('กรุณากรอกข้อมูลให้ครบทุกช่อง', 'error');
+        return;
+    }
+
+    if (registeredUsers.some(u => u.empId.toLowerCase() === empId.toLowerCase())) {
+        showToast('รหัสพนักงานนี้มีในระบบแล้ว', 'error');
+        return;
+    }
+
+    const newUser = { empId, password, fullName, phone, role: 'USER', avatar: tempRegisterAvatar };
+    registeredUsers.push(newUser);
+    localStorage.setItem('elec_users', JSON.stringify(registeredUsers));
+
+    showToast('ลงทะเบียนสำเร็จ! เข้าสู่ระบบได้ทันที');
+    switchAuthTab('login');
+    document.getElementById('loginEmpId').value = empId;
+}
+
+function handleLogin() {
+    const empId = document.getElementById('loginEmpId').value.trim();
+    const password = document.getElementById('loginPassword').value.trim();
+
+    const user = registeredUsers.find(u => u.empId.toLowerCase() === empId.toLowerCase() && u.password === password);
+
+    if (!user) {
+        showToast('รหัสพนักงานหรือรหัสผ่านไม่ถูกต้อง', 'error');
+        return;
+    }
+
+    currentUser = user;
+    localStorage.setItem('elec_current_user', JSON.stringify(currentUser));
+    showToast(`ยินดีต้อนรับ คุณ${user.fullName}`);
+    showMainApp();
+}
+
+function handleLogout() {
+    currentUser = null;
+    localStorage.removeItem('elec_current_user');
+    document.getElementById('authContainer').classList.remove('hidden');
+    document.getElementById('mainDashboard').classList.add('hidden');
+    showToast('ออกจากระบบเรียบร้อย');
+}
+
+function showMainApp() {
+    document.getElementById('authContainer').classList.add('hidden');
+    document.getElementById('mainDashboard').classList.remove('hidden');
+
+    document.getElementById('sidebarUserName').innerText = currentUser.fullName;
+    document.getElementById('sidebarUserEmpId').innerText = currentUser.empId;
+    document.getElementById('sidebarUserAvatar').src = currentUser.avatar;
+
+    document.getElementById('profName').innerText = currentUser.fullName;
+    document.getElementById('editEmpId').value = currentUser.empId;
+    document.getElementById('editFullName').value = currentUser.fullName;
+    document.getElementById('editPhone').value = currentUser.phone;
+    document.getElementById('profAvatar').src = currentUser.avatar;
+
+    const isAdmin = currentUser.role === 'ADMIN';
+    const adminReportsNav = document.getElementById('nav-adminReports');
+    const adminUsersNav = document.getElementById('nav-adminUsers');
+    const roleBadge = document.getElementById('roleBadge');
+    
+    if (isAdmin) {
+        if (adminReportsNav) adminReportsNav.classList.remove('hidden');
+        if (adminUsersNav) adminUsersNav.classList.remove('hidden');
+        if (roleBadge) roleBadge.classList.remove('hidden');
+        document.getElementById('profRoleTag').innerText = 'ผู้ดูแลระบบ (Admin Authority)';
+    } else {
+        if (adminReportsNav) adminReportsNav.classList.add('hidden');
+        if (adminUsersNav) adminUsersNav.classList.add('hidden');
+        if (roleBadge) roleBadge.classList.add('hidden');
+        document.getElementById('profRoleTag').innerText = 'แผนกซ่อมบำรุงไฟฟ้า (User)';
+    }
+
+    switchSection('home');
+    renderHomeDailyFeed();
+    renderHomePRFeed();
+    renderWorkLogs();
+    renderPRList();
+    if (isAdmin) renderAdminUsersTable();
+}
+
+/* ==================== HOME SECTION LOGIC ==================== */
+function renderHomeDailyFeed() {
+    const container = document.getElementById('homeDailyFeedList');
+    const filterDate = document.getElementById('homeFilterDate').value;
+    if (!container) return;
+
+    let filtered = [...workLogs];
+    if (filterDate) {
+        filtered = filtered.filter(item => item.date === filterDate);
+    }
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    const todayLogs = workLogs.filter(w => w.date === todayStr);
+    let todayTaskCount = 0;
+    const todayTechs = new Set();
+
+    todayLogs.forEach(l => {
+        todayTaskCount += (l.tasks ? l.tasks.length : 0);
+        if (l.submittedBy) todayTechs.add(l.submittedBy.empId || l.submittedBy.name);
+    });
+
+    document.getElementById('homeTodayJobsCount').innerText = `${todayTaskCount} รายการ`;
+    document.getElementById('homeTodayTechsCount').innerText = `${todayTechs.size} คน`;
+
+    if (filtered.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-12 text-slate-400 bg-slate-50 rounded-xl border border-dashed">
+                <i class="fa-solid fa-clipboard-list text-3xl mb-2"></i>
+                <p class="text-xs font-medium">ยังไม่มีข้อมูลการส่งงาน${filterDate ? ' ในวันที่เลือก' : ''}</p>
+            </div>
+        `;
+        return;
+    }
+
+    const groupedByDate = {};
+    filtered.forEach(log => {
+        if (!groupedByDate[log.date]) groupedByDate[log.date] = [];
+        groupedByDate[log.date].push(log);
+    });
+
+    let html = '';
+    for (const [dateStr, logs] of Object.entries(groupedByDate)) {
+        html += `
+            <div class="space-y-3">
+                <div class="flex items-center gap-2">
+                    <span class="px-3 py-1 bg-slate-900 text-amber-400 font-bold text-xs rounded-lg shadow-sm">
+                        <i class="fa-regular fa-calendar-days mr-1"></i> วันที่ ${dateStr}
+                    </span>
+                    <div class="h-px bg-slate-200 flex-1"></div>
+                </div>
+        `;
+
+        logs.forEach(log => {
+            const techName = log.submittedBy ? log.submittedBy.name : log.submittedBy;
+            const techAvatar = log.submittedBy ? log.submittedBy.avatar : 'https://placehold.co/100';
+
+            html += `
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 sm:p-4 space-y-3 hover:border-amber-400 transition">
+                    <div class="flex items-center justify-between border-b pb-2">
+                        <div class="flex items-center gap-2.5">
+                            <img src="${techAvatar}" class="w-8 h-8 rounded-full object-cover border border-amber-500">
+                            <div>
+                                <p class="text-xs font-bold text-slate-800">${techName}</p>
+                                <p class="text-[10px] text-slate-500">แผนกซ่อมบำรุงไฟฟ้า</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            ${log.season ? `<span class="bg-blue-100 text-blue-800 border border-blue-200 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-md"><i class="fa-solid fa-sun mr-1"></i>${log.season}</span>` : ''}
+                            <span class="bg-amber-100 text-amber-800 border border-amber-200 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-md">
+                                <i class="fa-solid fa-building mr-1"></i> ${log.department}
+                            </span>
+                            <button onclick="deleteWorkLog('${log.id}')" class="text-slate-400 hover:text-red-500 p-1.5 rounded transition ml-1" title="ลบรายการนี้">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2 pl-1 sm:pl-2">
+                        ${log.tasks ? log.tasks.map((task) => `
+                            <div class="text-xs bg-white p-2.5 sm:p-3 rounded-lg border border-slate-200 space-y-1">
+                                <div class="flex items-center justify-between">
+                                    <span class="font-bold text-amber-700"><i class="fa-solid fa-wrench mr-1"></i>ประเภท: ${task.type}</span>
+                                </div>
+                                <p class="text-slate-600"><span class="font-semibold text-slate-700">รายละเอียด:</span> ${task.details}</p>
+                                ${task.photo ? `
+                                    <div class="pt-1">
+                                        <img src="${task.photo}" onclick="openImageModal('${task.photo}')" class="h-20 w-20 object-cover rounded-lg border hover:opacity-80 cursor-pointer transition shadow-sm">
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `).join('') : ''}
+                    </div>
+                </div>
+            `;
+        });
+
+        html += `</div>`;
+    }
+
+    container.innerHTML = html;
+}
+
+function resetHomeFeedFilter() {
+    document.getElementById('homeFilterDate').value = '';
+    renderHomeDailyFeed();
+}
+
+function renderHomePRFeed() {
+    const container = document.getElementById('homePRFeedList');
+    if (!container) return;
+
+    document.getElementById('homeTotalPRCount').innerText = `${prRequests.length} รายการ`;
+
+    if (prRequests.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-8 text-slate-400">
+                <i class="fa-solid fa-cart-arrow-down text-2xl mb-1"></i>
+                <p class="text-xs">ไม่มีรายการสั่งซื้อ</p>
+            </div>
+        `;
+        return;
+    }
+
+    const isAdmin = currentUser && currentUser.role === 'ADMIN';
+
+    container.innerHTML = prRequests.map((pr) => {
+        let statusBadgeClass = 'bg-amber-100 text-amber-800 border-amber-300';
+        if (pr.status === 'อนุมัติแล้ว') statusBadgeClass = 'bg-emerald-100 text-emerald-800 border-emerald-300';
+        if (pr.status === 'ทำการสั่งแล้ว') statusBadgeClass = 'bg-blue-100 text-blue-800 border-blue-300';
+
+        return `
+            <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2 hover:border-amber-400 transition text-xs">
+                <div class="flex items-center justify-between border-b border-slate-200 pb-1.5">
+                    <span class="font-bold text-slate-800 bg-amber-100 text-amber-900 px-2 py-0.5 rounded">
+                        ${pr.department}
+                    </span>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] text-slate-500"><i class="fa-regular fa-clock mr-1"></i>${pr.date}</span>
+                        <button onclick="deletePRRequest('${pr.id}')" class="text-slate-400 hover:text-red-500 p-1 rounded transition" title="ลบรายการนี้">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    ${pr.items ? pr.items.map(item => `
+                        <div class="bg-white p-2 rounded border border-slate-100">
+                            <p class="font-bold text-slate-800 text-xs">• ${item.itemName}</p>
+                            <p class="text-slate-500 text-[11px] mt-0.5"><span class="font-medium text-slate-600">ใช้กับ:</span> ${item.purpose}</p>
+                            ${item.photo ? `
+                                <img src="${item.photo}" onclick="openImageModal('${item.photo}')" class="h-12 w-12 object-cover rounded border mt-1 cursor-pointer">
+                            ` : ''}
+                        </div>
+                    `).join('') : ''}
+                </div>
+
+                <div class="flex flex-col gap-2 pt-1 border-t border-slate-200">
+                    <div class="flex items-center justify-between text-[11px] text-slate-500">
+                        <span>ผู้สั่ง: ${pr.requestedBy ? pr.requestedBy.name : '-'}</span>
+                        <span class="px-2 py-0.5 rounded border font-bold ${statusBadgeClass}">${pr.status || 'รออนุมัติ'}</span>
+                    </div>
+
+                    ${isAdmin ? `
+                        <div class="flex items-center justify-end gap-1.5 pt-1">
+                            <button onclick="updatePRStatus('${pr.id}', 'อนุมัติแล้ว')" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[11px] font-bold transition flex items-center gap-1">
+                                <i class="fa-solid fa-circle-check"></i> กดอนุมัติ
+                            </button>
+                            <button onclick="updatePRStatus('${pr.id}', 'ทำการสั่งแล้ว')" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-[11px] font-bold transition flex items-center gap-1">
+                                <i class="fa-solid fa-truck-ramp-box"></i> ทำการสั่งแล้ว
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function updatePRStatus(prId, newStatus) {
+    const pr = prRequests.find(p => p.id === prId);
+    if (pr) {
+        pr.status = newStatus;
+        savePRRequestsToStorage();
+        showToast(`อัปเดตสถานะเป็น "${newStatus}" เรียบร้อย`);
+        renderHomePRFeed();
+        renderPRList();
+    }
+}
+
+/* ==================== WORK SUBMISSION LOGIC ==================== */
+function toggleOtherDeptInput() {
+    const deptSelect = document.getElementById('subDepartment');
+    const otherInput = document.getElementById('subDepartmentOther');
+    if (deptSelect.value === 'อื่นๆ') {
+        otherInput.classList.remove('hidden');
+        otherInput.required = true;
+    } else {
+        otherInput.classList.add('hidden');
+        otherInput.required = false;
+    }
+}
+
+function addWorkTaskRow() {
+    taskItemCounter++;
+    const container = document.getElementById('tasksContainer');
+    const taskId = 'task_' + taskItemCounter;
+
+    const div = document.createElement('div');
+    div.id = taskId;
+    div.className = "p-3.5 sm:p-4 bg-slate-50 border border-slate-200 rounded-xl relative space-y-3 transition duration-200 hover:border-amber-300";
+
+    div.innerHTML = `
+        <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-amber-700 bg-amber-100 border border-amber-200 px-2.5 py-0.5 rounded-md">
+                รายการงานที่ #${container.children.length + 1}
+            </span>
+            ${container.children.length > 0 ? `
+                <button type="button" onclick="removeWorkTaskRow('${taskId}')" class="text-xs text-red-500 hover:text-red-700 font-semibold flex items-center gap-1">
+                    <i class="fa-solid fa-trash-can"></i> ลบรายการนี้
+                </button>
+            ` : ''}
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">ประเภทงาน <span class="text-red-500">*</span></label>
+                <select name="taskType" required class="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+                    <option value="">-- เลือกประเภทงาน --</option>
+                    <option value="งานซ่อมแซม/แก้ไข (Repair)">งานซ่อมแซม/แก้ไข (Repair)</option>
+                    <option value="งานบำรุงรักษาป้องกัน (PM)">งานบำรุงรักษาป้องกัน (PM)</option>
+                    <option value="งานติดตั้ง/ปรับปรุง (Installation)">งานติดตั้ง/ปรับปรุง (Installation)</option>
+                    <option value="งานตรวจเช็คประจำวัน (Inspection)">งานตรวจเช็คประจำวัน (Inspection)</option>
+                    <option value="งานฉุกเฉิน (Breakdown)">งานฉุกเฉิน (Breakdown)</option>
+                    <option value="อื่นๆ">อื่นๆ</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">รูปภาพประกอบ</label>
+                <input type="file" accept="image/*" onchange="handleTaskPhotoUpload(event, '${taskId}')" class="w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-100 file:text-amber-800 active:file:bg-amber-200 cursor-pointer">
+                <input type="hidden" name="taskPhotoData" id="${taskId}_photoData" value="">
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">รายละเอียดงานที่ปฏิบัติ <span class="text-red-500">*</span></label>
+            <textarea name="taskDetails" required rows="2" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 outline-none" placeholder="ระบุรายละเอียดงาน..."></textarea>
+        </div>
+    `;
+
+    container.appendChild(div);
+}
+
+function removeWorkTaskRow(taskId) {
+    const row = document.getElementById(taskId);
+    if (row) row.remove();
+}
+
+async function handleTaskPhotoUpload(event, taskId) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            const compressed = await compressImage(e.target.result, 800, 0.6);
+            document.getElementById(`${taskId}_photoData`).value = compressed;
+        }
+        reader.readAsDataURL(file);
+    }
+}
+
+function resetWorkTasksForm() {
+    const container = document.getElementById('tasksContainer');
+    if (container) {
+        container.innerHTML = '';
+        addWorkTaskRow();
+    }
+}
+
+function handleWorkSubmit(event) {
+    event.preventDefault();
+
+    const date = document.getElementById('subDate').value;
+    const season = document.getElementById('subSeason').value;
+    let dept = document.getElementById('subDepartment').value;
+
+    if (dept === 'อื่นๆ') {
+        dept = document.getElementById('subDepartmentOther').value.trim() || 'อื่นๆ';
+    }
+
+    const taskRows = document.querySelectorAll('#tasksContainer > div');
+    const tasks = [];
+
+    taskRows.forEach(row => {
+        const type = row.querySelector('[name="taskType"]').value;
+        const details = row.querySelector('[name="taskDetails"]').value.trim();
+        const photo = row.querySelector('[name="taskPhotoData"]').value;
+
+        if (type && details) {
+            tasks.push({ type, details, photo });
+        }
+    });
+
+    if (tasks.length === 0) {
+        showToast('กรุณากรอกรายการงานอย่างน้อย 1 รายการ', 'error');
+        return;
+    }
+
+    const newLog = {
+        id: 'WORK-' + Date.now(),
+        date,
+        season,
+        department: dept,
+        tasks,
+        submittedBy: {
+            name: currentUser.fullName,
+            empId: currentUser.empId,
+            avatar: currentUser.avatar
+        },
+        createdAt: new Date().toISOString()
+    };
+
+    workLogs.unshift(newLog);
+    saveWorkLogsToStorage();
+
+    showToast('บันทึกการส่งงานเรียบร้อยแล้ว');
+    resetWorkTasksForm();
+    renderHomeDailyFeed();
+    renderWorkLogs();
+    switchSection('home');
+}
+
+function renderWorkLogs() {
+    const container = document.getElementById('workLogList');
+    if (!container) return;
+
+    const seasonFilter = document.getElementById('filterSeason').value;
+    const deptFilter = document.getElementById('filterDept').value;
+
+    let filtered = [...workLogs];
+
+    if (seasonFilter !== 'ALL') {
+        filtered = filtered.filter(w => w.season === seasonFilter);
+    }
+
+    if (deptFilter !== 'ALL') {
+        filtered = filtered.filter(w => w.department === deptFilter);
+    }
+
+    if (filtered.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-8 text-slate-400 bg-slate-50 rounded-xl border border-dashed">
+                <i class="fa-solid fa-inbox text-3xl mb-2"></i>
+                <p class="text-xs">ไม่พบรายการส่งงาน</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = filtered.map(log => `
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3 hover:border-amber-400 transition">
+            <div class="flex items-center justify-between border-b pb-2">
+                <div class="flex items-center gap-2">
+                    <img src="${log.submittedBy ? log.submittedBy.avatar : 'https://placehold.co/100'}" class="w-8 h-8 rounded-full border border-amber-500 object-cover">
+                    <div>
+                        <p class="text-xs font-bold text-slate-800">${log.submittedBy ? log.submittedBy.name : '-'}</p>
+                        <p class="text-[10px] text-slate-500">${log.date}</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="bg-blue-100 text-blue-800 border border-blue-200 text-xs font-bold px-2 py-0.5 rounded-md">${log.season}</span>
+                    <span class="bg-amber-100 text-amber-800 border border-amber-200 text-xs font-bold px-2.5 py-0.5 rounded-md">${log.department}</span>
+                    <button onclick="deleteWorkLog('${log.id}')" class="text-slate-400 hover:text-red-500 p-1.5 rounded transition" title="ลบรายการนี้">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                ${log.tasks ? log.tasks.map(task => `
+                    <div class="text-xs bg-white p-3 rounded-lg border border-slate-200 space-y-1">
+                        <p class="font-bold text-amber-700"><i class="fa-solid fa-wrench mr-1"></i>${task.type}</p>
+                        <p class="text-slate-600">${task.details}</p>${task.photo ? `<img src="${task.photo}" onclick="openImageModal('${task.photo}')" class="h-16 w-16 object-cover rounded border mt-1 cursor-pointer">` : ''}
+                    </div>
+                `).join('') : ''}
+            </div>
+        </div>
+    `).join('');
+}
+
+/* ==================== PR SUBMISSION LOGIC ==================== */
+function togglePROtherDeptInput() {
+    const deptSelect = document.getElementById('prDepartment');
+    const otherInput = document.getElementById('prDepartmentOther');
+    if (deptSelect.value === 'อื่นๆ') {
+        otherInput.classList.remove('hidden');
+        otherInput.required = true;
+    } else {
+        otherInput.classList.add('hidden');
+        otherInput.required = false;
+    }
+}
+
+function addPRItemRow() {
+    prItemCounter++;
+    const container = document.getElementById('prItemsContainer');
+    const itemId = 'prItem_' + prItemCounter;
+
+    const div = document.createElement('div');
+    div.id = itemId;
+    div.className = "p-3.5 sm:p-4 bg-slate-50 border border-slate-200 rounded-xl relative space-y-3 transition duration-200 hover:border-amber-300";
+
+    div.innerHTML = `
+        <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-amber-700 bg-amber-100 border border-amber-200 px-2.5 py-0.5 rounded-md">
+                รายการสั่งซื้อที่ #${container.children.length + 1}
+            </span>
+            ${container.children.length > 0 ? `
+                <button type="button" onclick="removePRItemRow('${itemId}')" class="text-xs text-red-500 hover:text-red-700 font-semibold flex items-center gap-1">
+                    <i class="fa-solid fa-trash-can"></i> ลบรายการนี้
+                </button>
+            ` : ''}
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">ชื่อรายการ/อุปกรณ์ <span class="text-red-500">*</span></label>
+                <input type="text" name="prItemName" required class="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 outline-none" placeholder="เช่น เบรกเกอร์ 3P 100A">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">รูปภาพประกอบ</label>
+                <input type="file" accept="image/*" onchange="handlePRPhotoUpload(event, '${itemId}')" class="w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-100 file:text-amber-800 active:file:bg-amber-200 cursor-pointer">
+                <input type="hidden" name="prPhotoData" id="${itemId}_photoData" value="">
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">วัตถุประสงค์การใช้งาน / นำไปใช้ทำอะไร <span class="text-red-500">*</span></label>
+            <textarea name="prPurpose" required rows="2" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 outline-none" placeholder="ระบุเหตุผลและแผนกที่ใช้งาน..."></textarea>
+        </div>
+    `;
+
+    container.appendChild(div);
+}
+
+function removePRItemRow(itemId) {
+    const row = document.getElementById(itemId);
+    if (row) row.remove();
+}
+
+async function handlePRPhotoUpload(event, itemId) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            const compressed = await compressImage(e.target.result, 800, 0.6);
+            document.getElementById(`${itemId}_photoData`).value = compressed;
+        }
+        reader.readAsDataURL(file);
+    }
+}
+
+function resetPRForm() {
+    const container = document.getElementById('prItemsContainer');
+    if (container) {
+        container.innerHTML = '';
+        addPRItemRow();
+    }
+}
+
+function handlePRSubmit(event) {
+    event.preventDefault();
+
+    let dept = document.getElementById('prDepartment').value;
+    if (dept === 'อื่นๆ') {
+        dept = document.getElementById('prDepartmentOther').value.trim() || 'อื่นๆ';
+    }
+
+    const itemRows = document.querySelectorAll('#prItemsContainer > div');
+    const items = [];
+
+    itemRows.forEach(row => {
+        const itemName = row.querySelector('[name="prItemName"]').value.trim();
+        const purpose = row.querySelector('[name="prPurpose"]').value.trim();
+        const photo = row.querySelector('[name="prPhotoData"]').value;
+
+        if (itemName && purpose) {
+            items.push({ itemName, purpose, photo });
+        }
+    });
+
+    if (items.length === 0) {
+        showToast('กรุณากรอกรายการเสนอสั่งซื้ออย่างน้อย 1 รายการ', 'error');
+        return;
+    }
+
+    const newPR = {
+        id: 'PR-' + Date.now(),
+        date: new Date().toISOString().split('T')[0],
+        department: dept,
+        items,
+        requestedBy: {
+            name: currentUser.fullName,
+            empId: currentUser.empId,
+            avatar: currentUser.avatar
+        },
+        status: 'รออนุมัติ',
+        createdAt: new Date().toISOString()
+    };
+
+    prRequests.unshift(newPR);
+    savePRRequestsToStorage();
+
+    showToast('ยื่นรายการเสนอสั่งซื้อเรียบร้อยแล้ว');
+    resetPRForm();
+    renderHomePRFeed();
+    renderPRList();
+    switchSection('home');
+}
+
+function renderPRList() {
+    const container = document.getElementById('prLogList');
+    if (!container) return;
+
+    if (prRequests.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-8 text-slate-400 bg-slate-50 rounded-xl border border-dashed">
+                <i class="fa-solid fa-cart-arrow-down text-3xl mb-2"></i>
+                <p class="text-xs">ไม่พบรายการเสนอสั่งซื้อ</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = prRequests.map(pr => `
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3 hover:border-amber-400 transition">
+            <div class="flex items-center justify-between border-b pb-2">
+                <div class="flex items-center gap-2">
+                    <img src="${pr.requestedBy ? pr.requestedBy.avatar : 'https://placehold.co/100'}" class="w-8 h-8 rounded-full border border-amber-500 object-cover">
+                    <div>
+                        <p class="text-xs font-bold text-slate-800">${pr.requestedBy ? pr.requestedBy.name : '-'}</p>
+                        <p class="text-[10px] text-slate-500">${pr.date}</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="bg-amber-100 text-amber-800 border border-amber-200 text-xs font-bold px-2.5 py-0.5 rounded-md">${pr.department}</span>
+                    <button onclick="deletePRRequest('${pr.id}')" class="text-slate-400 hover:text-red-500 p-1.5 rounded transition" title="ลบรายการนี้">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                ${pr.items ? pr.items.map(item => `
+                    <div class="text-xs bg-white p-3 rounded-lg border border-slate-200 space-y-1">
+                        <p class="font-bold text-slate-800">• ${item.itemName}</p>
+                        <p class="text-slate-600"><span class="font-semibold">วัตถุประสงค์:</span> ${item.purpose}</p>
+                        ${item.photo ? `<img src="${item.photo}" onclick="openImageModal('${item.photo}')" class="h-16 w-16 object-cover rounded border mt-1 cursor-pointer">` : ''}
+                    </div>
+                `).join('') : ''}
+            </div>
+        </div>
+    `).join('');
+}
+
+/* ==================== DASHBOARD LOGIC ==================== */
+function updateDashboardCharts() {
+    const seasonFilter = document.getElementById('dashSeasonFilter').value;
+    let filteredLogs = [...workLogs];
+    if (seasonFilter !== 'ALL') {
+        filteredLogs = filteredLogs.filter(w => w.season === seasonFilter);
+    }
+
+    let totalTasks = 0;
+    const deptCounts = {};
+    const typeCounts = {};
+    const userStats = {};
+
+    filteredLogs.forEach(log => {
+        const dept = log.department || 'ไม่ระบุ';
+        const uName = log.submittedBy ? log.submittedBy.name : 'ไม่ระบุ';
+
+        if (!userStats[uName]) {
+            userStats[uName] = { name: uName, avatar: log.submittedBy ? log.submittedBy.avatar : 'https://placehold.co/100', total: 0, types: {} };
+        }
+
+        if (log.tasks) {
+            log.tasks.forEach(task => {
+                totalTasks++;
+                deptCounts[dept] = (deptCounts[dept] || 0) + 1;
+                typeCounts[task.type] = (typeCounts[task.type] || 0) + 1;
+
+                userStats[uName].total++;
+                userStats[uName].types[task.type] = (userStats[uName].types[task.type] || 0) + 1;
+            });
+        }
+    });
+
+    document.getElementById('dashTotalJobs').innerText = totalTasks;
+    document.getElementById('dashTotalPR').innerText = prRequests.length;
+
+    let topDept = '-';
+    let maxDeptTasks = 0;
+    for (const [d, count] of Object.entries(deptCounts)) {
+        if (count > maxDeptTasks) {
+            maxDeptTasks = count;
+            topDept = d;
+        }
+    }
+    document.getElementById('dashTopDept').innerText = topDept;
+
+    const userStatsContainer = document.getElementById('dashUserStatsList');
+    if (userStatsContainer) {
+        userStatsContainer.innerHTML = Object.values(userStats).map(u => `
+            <div class="bg-slate-50 border border-slate-200 p-3 rounded-xl flex items-center gap-3">
+                <img src="${u.avatar}" class="w-10 h-10 rounded-full object-cover border border-amber-500">
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-bold text-slate-800 truncate">${u.name}</p>
+                    <p class="text-[11px] text-amber-700 font-semibold">ส่งงานรวม ${u.total} รายการ</p>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Chart 1: Dept
+    const ctxDept = document.getElementById('chartDept');
+    if (ctxDept) {
+        if (deptChartInstance) deptChartInstance.destroy();
+        deptChartInstance = new Chart(ctxDept, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(deptCounts),
+                datasets: [{
+                    data: Object.values(deptCounts),
+                    backgroundColor: ['#f59e0b', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6', '#ec4899', '#64748b']
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    }
+
+    // Chart 2: Type
+    const ctxType = document.getElementById('chartType');
+    if (ctxType) {
+        if (typeChartInstance) typeChartInstance.destroy();
+        typeChartInstance = new Chart(ctxType, {
+            type: 'pie',
+            data: {
+                labels: Object.keys(typeCounts),
+                datasets: [{
+                    data: Object.values(typeCounts),
+                    backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#64748b']
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    }
+
+    // Chart 3: User Jobs
+    const ctxUser = document.getElementById('chartUserJobs');
+    if (ctxUser) {
+        if (userJobsChartInstance) userJobsChartInstance.destroy();
+        userJobsChartInstance = new Chart(ctxUser, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(userStats),
+                datasets: [{
+                    label: 'จำนวนงานที่บันทึก',
+                    data: Object.values(userStats).map(u => u.total),
+                    backgroundColor: '#f59e0b'
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    }
+}
+
+/* ==================== ADMIN REPORT EXPORT ==================== */
+function generatePowerPointReport() {
+    if (typeof PptxGenJS === 'undefined') {
+        showToast('ไลบรารี PowerPoint ยังโหลดไม่สมบูรณ์', 'error');
+        return;
+    }
+
+    const pptx = new PptxGenJS();
+    pptx.layout = 'LAYOUT_16x9';
+
+    let slide = pptx.addSlide();
+    slide.addText('รายงานผลการปฏิบัติงาน แผนกซ่อมบำรุงไฟฟ้า', { x: 0.5, y: 1.5, w: '90%', fontSize: 24, bold: true, color: '0F172A' });
+    slide.addText(`สร้างเมื่อวันที่: ${new Date().toLocaleDateString('th-TH')}`, { x: 0.5, y: 2.2, fontSize: 14, color: '64748B' });
+
+    workLogs.forEach((log, index) => {
+        let workSlide = pptx.addSlide();
+        workSlide.addText(`บันทึกการส่งงาน - ${log.department} (${log.date})`, { x: 0.5, y: 0.5, fontSize: 18, bold: true, color: 'B45309' });
+        
+        let textContent = `ผู้ปฏิบัติงาน: ${log.submittedBy ? log.submittedBy.name : '-'}\nฤดูกาล: ${log.season}\n\nรายการงาน:`;
+        if (log.tasks) {
+            log.tasks.forEach((t, i) => {
+                textContent += `\n${i+1}. [${t.type}] ${t.details}`;
+            });
+        }
+        
+        workSlide.addText(textContent, { x: 0.5, y: 1.2, w: 9, h: 5, fontSize: 13, color: '334155' });
+    });
+
+    pptx.writeFile({ fileName: `รายงานซ่อมบำรุงไฟฟ้า_${new Date().toISOString().split('T')[0]}.pptx` });
+    showToast('สร้างไฟล์ PowerPoint เรียบร้อยแล้ว');
+}
+
+/* ==================== ADMIN USER MANAGEMENT LOGIC ==================== */
+function renderAdminUsersTable() {
+    const tbody = document.getElementById('adminUserTableBody');
+    if (!tbody) return;
+
+    tbody.innerHTML = registeredUsers.map(u => `
+        <tr class="hover:bg-slate-50 transition">
+            <td class="p-3 font-semibold text-slate-800 flex items-center gap-2">
+                <img src="${u.avatar}" class="w-7 h-7 rounded-full object-cover border border-amber-500">
+                ${u.fullName}
+            </td>
+            <td class="p-3 font-mono">${u.empId}</td>
+            <td class="p-3">${u.phone}</td>
+            <td class="p-3">
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${u.role === 'ADMIN' ? 'bg-amber-100 text-amber-800 border border-amber-300' : 'bg-slate-100 text-slate-700'}">
+                    ${u.role}
+                </span>
+            </td>
+            <td class="p-3 text-center">
+                <button onclick="openAdminEditModal('${u.empId}')" class="px-2 py-1 bg-amber-500 text-slate-950 font-bold rounded hover:bg-amber-600 transition text-[11px]">
+                    <i class="fa-solid fa-pen"></i> แก้ไข
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function openAdminEditModal(empId) {
+    const user = registeredUsers.find(u => u.empId === empId);
+    if (!user) return;
+
+    document.getElementById('adminEditEmpIdHidden').value = user.empId;
+    document.getElementById('adminEditEmpId').value = user.empId;
+    document.getElementById('adminEditFullName').value = user.fullName;
+    document.getElementById('adminEditPhone').value = user.phone;
+    document.getElementById('adminEditRole').value = user.role;
+    document.getElementById('adminEditPassword').value = '';
+
+    document.getElementById('adminEditUserModal').classList.remove('hidden');
+}
+
+function closeAdminEditModal() {
+    document.getElementById('adminEditUserModal').classList.add('hidden');
+}
+
+function handleAdminSaveUser(event) {
+    event.preventDefault();
+    const empId = document.getElementById('adminEditEmpIdHidden').value;
+    const fullName = document.getElementById('adminEditFullName').value.trim();
+    const phone = document.getElementById('adminEditPhone').value.trim();
+    const role = document.getElementById('adminEditRole').value;
+    const newPassword = document.getElementById('adminEditPassword').value.trim();
+
+    const userIndex = registeredUsers.findIndex(u => u.empId === empId);
+    if (userIndex !== -1) {
+        registeredUsers[userIndex].fullName = fullName;
+        registeredUsers[userIndex].phone = phone;
+        registeredUsers[userIndex].role = role;
+        if (newPassword) {
+            registeredUsers[userIndex].password = newPassword;
+        }
+
+        localStorage.setItem('elec_users', JSON.stringify(registeredUsers));
+        showToast('อัปเดตข้อมูลผู้ใช้เรียบร้อยแล้ว');
+        closeAdminEditModal();
+        renderAdminUsersTable();
+    }
+}
+
+/* ==================== USER PROFILE LOGIC ==================== */
+async function handleProfileAvatarUpload(event) {
+    const file = event.target.files[0];
+    if (file && currentUser) {
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            const compressed = await compressImage(e.target.result, 300, 0.6);
+            currentUser.avatar = compressed;
+            document.getElementById('profAvatar').src = compressed;
+            document.getElementById('sidebarUserAvatar').src = compressed;
+
+            const uIdx = registeredUsers.findIndex(u => u.empId === currentUser.empId);
+            if (uIdx !== -1) {
+                registeredUsers[uIdx].avatar = compressed;
+                localStorage.setItem('elec_users', JSON.stringify(registeredUsers));
+            }
+            localStorage.setItem('elec_current_user', JSON.stringify(currentUser));
+            showToast('อัปเดตรูปโปรไฟล์เรียบร้อยแล้ว');
+        }
+        reader.readAsDataURL(file);
+    }
+}
+
+function handleSaveProfile(event) {
+    event.preventDefault();
+    if (!currentUser) return;
+
+    const newName = document.getElementById('editFullName').value.trim();
+    const newPhone = document.getElementById('editPhone').value.trim();
+    const newPass = document.getElementById('editPassword').value.trim();
+
+    if (!newName || !newPhone) {
+        showToast('กรุณากรอกชื่อและเบอร์โทรศัพท์', 'error');
+        return;
+    }
+
+    currentUser.fullName = newName;
+    currentUser.phone = newPhone;
+    if (newPass) currentUser.password = newPass;
+
+    const uIdx = registeredUsers.findIndex(u => u.empId === currentUser.empId);
+    if (uIdx !== -1) {
+        registeredUsers[uIdx] = currentUser;
+        localStorage.setItem('elec_users', JSON.stringify(registeredUsers));
+    }
+    localStorage.setItem('elec_current_user', JSON.stringify(currentUser));
+
+    document.getElementById('sidebarUserName').innerText = newName;
+    document.getElementById('profName').innerText = newName;
+
+    showToast('บันทึกข้อมูลส่วนตัวสำเร็จ');
+}
+</script>
+</body>
+</html>
